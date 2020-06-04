@@ -3,8 +3,7 @@ from train import train
 import os, warnings, argparse
 warnings.filterwarnings('ignore')
 
-from transformers import BertTokenizer 
-from dataset import QA_dataset, DataLoader
+from dataset import *#Cinnamon_Dataset, DataLoader, pretrained_weights
 
 def parse_args(string=None):
     parser = argparse.ArgumentParser()
@@ -34,22 +33,21 @@ if __name__=='__main__':
     os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
     
     ## load tokenizer
-    tokenizer = BertTokenizer.from_pretrained('bert-base-chinese',
-                                              do_lower_case=True)
-    
-    ## load dataset
-    train_dataset = QA_dataset('/media/D/ADL2020-SPRING/A2/train.json', tokenizer)
-    valid_dataset = QA_dataset('/media/D/ADL2020-SPRING/A2/dev.json', tokenizer)
+    tokenizer = BertTokenizer.from_pretrained(pretrained_weights, do_lower_case=True)
 
-    train_dataloader = DataLoader(train_dataset, 
-                                  batch_size = args.batch_size,
-                                  num_workers = args.num_workers,
-                                  collate_fn = train_dataset.collate_fn,
-                                  shuffle=True)
-    valid_dataloader = DataLoader(valid_dataset, 
-                                  batch_size = args.batch_size*4,
-                                  num_workers = args.num_workers,
-                                  collate_fn = valid_dataset.collate_fn )
+    ## load dataset
+    train_dataset = Cinnamon_Dataset('/media/D/ADL2020-SPRING/project/cinnamon/train/', tokenizer)
+    valid_dataset = Cinnamon_Dataset('/media/D/ADL2020-SPRING/project/cinnamon/dev/', tokenizer)
+
+    train_dataloader = DataLoader(train_dataset,
+                                 batch_size = args.batch_size,
+                                 num_workers = args.num_workers,
+                                 collate_fn = train_dataset.collate_fn,
+                                 shuffle = True)
+    valid_dataloader = DataLoader(valid_dataset,
+                                 batch_size = args.batch_size*4,
+                                 num_workers = args.num_workers,
+                                 collate_fn = train_dataset.collate_fn)
     
     ## train
     train(args, train_dataloader, valid_dataloader)
