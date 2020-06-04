@@ -17,6 +17,8 @@ def parse_args(string=None):
                         type=str, help="0:1080ti 1:1070")
     parser.add_argument('--num-workers', default=8,
                         type=int, help='dataloader num workers')
+    parser.add_argument('--cinnamon-data-path', default='/media/D/ADL2020-SPRING/project/cinnamon/',
+                        type=str, help='cinnamon dataset')
     parser.add_argument('--load-model', default='trained_model/epoch_6_model_loss_0.4579.pt',
                         type=str, help='.pt model file ')
     parser.add_argument('--save-path', default='ckpt',
@@ -36,8 +38,8 @@ if __name__=='__main__':
     tokenizer = BertTokenizer.from_pretrained(pretrained_weights, do_lower_case=True)
 
     ## load dataset
-    train_dataset = Cinnamon_Dataset('/media/D/ADL2020-SPRING/project/cinnamon/train/', tokenizer)
-    valid_dataset = Cinnamon_Dataset('/media/D/ADL2020-SPRING/project/cinnamon/dev/', tokenizer)
+    train_dataset = Cinnamon_Dataset(f'{args.cinnamon_data_path}/train/', tokenizer)
+    valid_dataset = Cinnamon_Dataset(f'{args.cinnamon_data_path}/dev/', tokenizer)
 
     train_dataloader = DataLoader(train_dataset,
                                  batch_size = args.batch_size,

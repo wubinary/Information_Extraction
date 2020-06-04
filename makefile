@@ -1,4 +1,6 @@
 
+train_wu_1080ti:
+	python3 main.py --cinnamon-data-path /media/D/ADL2020-SPRING/project/cinnamon/ 
 
 #######################################################################
 
