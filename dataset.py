@@ -3,6 +3,9 @@ import numpy as np
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader
 
+import re
+import unicodedata
+
 class ABC_dataset(Dataset):
     def __init__(self):
         self.data = []
@@ -39,11 +42,11 @@ class Cinnamon_Dataset(Dataset):
                     out = list()
                     for string in strings: 
                         out += string.split(";")
+                    out = [unicodedata.normalize("NFKC", re.sub('＊|\*|\s+', '', tag)) for tag in out]
                     return out
                 items = split(label_str)
                 tags.update(items)
             return tuple(sorted(list(tags)))
-            #return tuple(["[PAD]", "[None]"] + sorted(list(tags)))
         
         def get_samples(cinnamon_path):
             groups = []
@@ -82,10 +85,14 @@ class Cinnamon_Dataset(Dataset):
             token_ids = [CLS]
             output = [zero_vec()]
             for text, tag in zip(sample['Text'],sample['Tag']):
+                # 全形半形問題
+                text = unicodedata.normalize("NFKC", re.sub('＊|\*|\s+', '', text))
+                ###
                 ids = tokenizer.encode(text)[1:-1] + [SEP]
                 label = zero_vec()
                 if isinstance(tag, str): 
                     for t in tag.split(';'):
+                        t = unicodedata.normalize("NFKC", re.sub('＊|\*|\s+', '', t))
                         label[tags.index(t)] = 1
                 token_ids += ids
                 output += [label]*(len(ids)-1) + [zero_vec()]
@@ -104,4 +111,3 @@ class Cinnamon_Dataset(Dataset):
             b_output[idx] = output
 
         return torch.tensor(b_token_ids), torch.tensor(b_output)
-    
