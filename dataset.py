@@ -93,10 +93,15 @@ class Cinnamon_Dataset(Dataset):
             b_output.append(output)
 
         ## pad to same lenght
-        max_len = min(max([len(s) for s in b_token_ids]), 512)
-        for token_ids, output in zip(b_token_ids, b_output):
+        max_len = min([max([len(s) for s in b_token_ids]), 512])
+        for idx,(token_ids, output) in enumerate(zip(b_token_ids, b_output)):            
+            token_ids = token_ids[:max_len]
             token_ids += [PAD]*(max_len-len(token_ids))
+            b_token_ids[idx] = token_ids
+            
+            output = output[:max_len]
             output += [zero_vec()]*(max_len-len(output))
+            b_output[idx] = output
 
         return torch.tensor(b_token_ids), torch.tensor(b_output)
-
+    
