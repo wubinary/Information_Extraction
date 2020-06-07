@@ -1,27 +1,20 @@
 import torch
 import torch.nn.functional as F
 
-def metrics(output_ansable, output_start, output_end, mask, 
-            ansable, start, end, acc=None, f1=None, count=None):
-    acc = {'ans':0, 's/e':0} if acc is None else acc
-    f1  = {'ans':0, 's/e':0} if f1 is None else f1 
+def metrics(_predict, _label, acc=None, f1=None, count=None):
+    acc = 0 if acc is None else acc
+    f1  = 0 if f1 is None else f1 
     count = 0 if count is None else count 
 
-    b = ansable.size(0)
+    b = _predict.size(0)
 
-    ## Accuracy 
-    batch_ans_acc = accuracy(output_ansable, ansable)
-    batch_s_e_acc = (accuracy(output_start, start, position=True)+\
-                     accuracy(output_end, end, position=True)) / 2
-    acc['ans'] = (acc['ans']*count + batch_ans_acc*b) / (count + b)
-    acc['s/e'] = (acc['s/e']*count + batch_s_e_acc*b) / (count + b)
+    ## Accuracy     
+    b_acc = accuracy(_predict, _label)
+    acc = (acc*count + b_acc*1) / (count + 1)
 
-    ## F1 score 
-    batch_ans_f1 = f1_score(output_ansable, ansable)
-    batch_s_e_f1 = (f1_score(output_start, start, mask)+\
-                    f1_score(output_end, end, mask)) / 2
-    f1['ans'] = (f1['ans']*count + batch_ans_f1*b) / (count + b)
-    f1['s/e'] = (f1['s/e']*count + batch_s_e_f1*b) / (count + b)
+    ## F1 score    
+    b_f1 = f1_score(_predict, _label)
+    f1 = (f1*count + b_f1*1) / (count + 1)
     
     return acc, f1
 

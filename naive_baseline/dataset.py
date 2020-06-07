@@ -1,4 +1,4 @@
-import torch, json, glob
+import json, glob, torch
 import numpy as np
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader
@@ -6,6 +6,8 @@ from torch.utils.data import Dataset, DataLoader
 import re
 import unicodedata
 
+########################################################
+##################  Examples Dataset  ##################
 class ABC_dataset(Dataset):
     def __init__(self):
         self.data = []
@@ -19,14 +21,6 @@ class ABC_dataset(Dataset):
 def collate_fn(samples):
 
     return torch.tensor([])
-
-########################################################
-
-import torch
-from torch.utils.data import Dataset, DataLoader
-
-from transformers import BertTokenizer 
-pretrained_weights = 'cl-tohoku/bert-base-japanese-whole-word-masking'
 
 ########################################################
 ##################  Cinnamon Dataset  ##################

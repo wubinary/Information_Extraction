@@ -1,51 +1,24 @@
 
-train_wu_1080ti:
-	python3 main.py --cinnamon-data-path /media/D/ADL2020-SPRING/project/cinnamon/ 
+GPU=0
+CINNAMON_DATA_PATH=/media/D/ADL2020-SPRING/project/cinnamon/ 
 
-#######################################################################
+###########################################################################
+###########################   Wu's scripts   ##############################
 
-## test 
-#model=trained_model/epoch_2_model_loss_4.9602.pt
-#model=abc
+wu_train_naive_baseline:
+	python3 ./naive_baseline/main.py --gpu $(GPU) --cinnamon-data-path $(CINNAMON_DATA_PATH) --lr 2e-5 --epoch 8 --batch-size 4 --save-path ./naive_baseline/ckpt/ 
 
-## best
-model=trained_model/epoch_6_model_loss_5.5226.pt 
-
-threshold=0.5
-#threshold=0.1
-#threshold=0.05
-
-#######################################################################
-
-train_1070:
-	python3 main.py --load-model $(model) --batch-size 4 --gpu 1
-
-train_1080ti_from_scratch:
-	python3 main.py --epoch 8 --lr 2e-5 --gpu 0 
-
-train_1080ti:
-	python3 main.py --epoch 3 --lr 2e-5 --load-model $(model) --gpu 0 
-
-inference:
-	python3 inference.py --threshold $(threshold) --test-json /media/D/ADL2020-SPRING/A2/dev.json --load-model-path $(model) --write-file result/predict.json --num-workers 8 --gpu 1 --batch-size 48 
-
-evaluate:
-	python3 evaluate.py /media/D/ADL2020-SPRING/A2/dev.json result/predict.json result/result.json ckip/data/ 
+wu_inference_naive_baseline:
+	python3 ./naive_baseline/inference.py --gpu $(GPU) --load-model ./naive_baseline/ckpt/epoch_6.pt --cinnamon-data-path $(CINNAMON_DATA_PATH) 
 
 
-#######################################################################
+###########################################################################
+###########################   Hsu's scripts   #############################
 
-test_threshold:  
-	python3 inference.py --threshold 0.1 --test-json /media/D/ADL2020-SPRING/A2/dev.json --load-model-path $(model) --write-file result/predict.json --num-workers 8 --gpu 1 --batch-size 48 
-	python3 evaluate.py /media/D/ADL2020-SPRING/A2/dev.json result/predict.json result/result_0.1.json ckip/data/
-	python3 inference.py --threshold 0.3 --test-json /media/D/ADL2020-SPRING/A2/dev.json --load-model-path $(model) --write-file result/predict.json --num-workers 8 --gpu 1 --batch-size 48 
-	python3 evaluate.py /media/D/ADL2020-SPRING/A2/dev.json result/predict.json result/result_0.3.json ckip/data/  
-	python3 inference.py --threshold 0.5 --test-json /media/D/ADL2020-SPRING/A2/dev.json --load-model-path $(model) --write-file result/predict.json --num-workers 8 --gpu 1 --batch-size 48 
-	python3 evaluate.py /media/D/ADL2020-SPRING/A2/dev.json result/predict.json result/result_0.5.json ckip/data/
-	python3 inference.py --threshold 0.7 --test-json /media/D/ADL2020-SPRING/A2/dev.json --load-model-path $(model) --write-file result/predict.json --num-workers 8 --gpu 1 --batch-size 48 
-	python3 evaluate.py /media/D/ADL2020-SPRING/A2/dev.json result/predict.json result/result_0.7.json ckip/data/ 
-	python3 inference.py --threshold 0.9 --test-json /media/D/ADL2020-SPRING/A2/dev.json --load-model-path $(model) --write-file result/predict.json --num-workers 8 --gpu 1 --batch-size 48 
-	python3 evaluate.py /media/D/ADL2020-SPRING/A2/dev.json result/predict.json result/result_0.9.json ckip/data/
- 
+hsu_train_naive_baseline:
+	python3 ./naive_baseline/main.py --gpu $(GPU) --cinnamon-data-path $(CINNAMON_DATA_PATH) --lr 2e-5 --epoch 8 --batch-size 4 --save-path ./naive_baseline/ckpt/ 
 
+hsu_inference_naive_baseline:
+	python3 ./naive_baseline/inference.py --gpu $(GPU) --load-model ./naive_baseline/ckpt/epoch_6.pt --cinnamon-data-path $(CINNAMON_DATA_PATH) 
+	
 

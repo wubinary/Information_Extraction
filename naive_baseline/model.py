@@ -3,9 +3,9 @@ import json
 import torch
 import torch.nn as nn
 
-from transformers import BertModel
+from transformers import BertTokenizer,BertModel
 
-pretrained_weights = 'bert-base-chinese'
+pretrained_weights = 'cl-tohoku/bert-base-japanese-whole-word-masking'
 
 class Model(nn.Module):
     def __init__(self):
@@ -19,35 +19,30 @@ class Model(nn.Module):
         #self.dropout = nn.Dropout(0.3)
 
         hidden_dim = 768
-        self.fc_ans_able = nn.Linear(hidden_dim, 1)
-        self.fc_start = nn.Linear(hidden_dim, 1)
-        self.fc_end = nn.Linear(hidden_dim, 1)
+        self.fc = nn.Linear(hidden_dim, 20)
 
-        self.step_loss = {}
+        self.step_loss = []
     
     def forward(self, input_ids):
-        
         last_hidden_states, cls_hidden = self.bert_embedd(input_ids)
-        
-        output_ans_able = self.fc_ans_able(cls_hidden)
-        output_start    = self.fc_start(last_hidden_states)
-        output_end      = self.fc_end(last_hidden_states)
-       
-        #return output_ans_able, output_start, output_end 
-        return output_ans_able, output_start.squeeze(2), output_end.squeeze(2)
+        output = self.fc(last_hidden_states)
+        return output
    
-    def save(self, epoch, loss, path='ckpt/'):
-        self.step_loss[epoch] = loss 
+    def save(self, epoch, t_log, v_log, path='ckpt/'):
+        self.step_loss.append({'epoch':epoch,
+                            'train_acc':t_log['acc'], 'train_f1':t_log['f1'],
+                            'valid_acc':v_log['acc'], 'valid_f1':v_log['f1']}) 
         with open(f'{path}/step_loss.json', 'w', encoding='utf-8') as f:
             json.dump(self.step_loss, f, indent=4)
-        torch.save({'epoch': epoch, 'loss': loss, 'state_dict': self.state_dict()},
+        torch.save({'epoch': epoch, 'state_dict': self.state_dict()},
                   f'{path}/epoch_{epoch}.pt')
         print(f'\t[Info] save weight, {path}/epoch_{epoch}.pt')
 
     def load(self, load_file):
         if os.path.isfile(load_file):
-            self.load_state_dict(torch.load(load_model)['state_dict'])
-            print(f'\t[Info] load weight, {load_model}')
+            self.load_state_dict(torch.load(load_file)['state_dict'])
+            print(f'\t[Info] load weight, {load_file}')
         else:
             print(f'\t[ERROR] {load_file} not exist !')
+        return self
         

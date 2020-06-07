@@ -1,9 +1,9 @@
-from train import train
+from dataset import Cinnamon_Dataset, DataLoader
+from train import BertTokenizer, Model, pretrained_weights, train
 
 import os, warnings, argparse
 warnings.filterwarnings('ignore')
 
-from dataset import *#Cinnamon_Dataset, DataLoader, pretrained_weights
 
 def parse_args(string=None):
     parser = argparse.ArgumentParser()
@@ -11,17 +11,17 @@ def parse_args(string=None):
                         type=float, help='leanring rate')
     parser.add_argument('--epoch', default=5,
                         type=int, help='epochs')
-    parser.add_argument('--batch-size', default=8,
+    parser.add_argument('--batch-size', default=4,
                         type=int, help='batch size')
-    parser.add_argument('--gpu', default="1",
+    parser.add_argument('--gpu', default="0",
                         type=str, help="0:1080ti 1:1070")
     parser.add_argument('--num-workers', default=8,
                         type=int, help='dataloader num workers')
     parser.add_argument('--cinnamon-data-path', default='/media/D/ADL2020-SPRING/project/cinnamon/',
                         type=str, help='cinnamon dataset')
-    parser.add_argument('--load-model', default='trained_model/epoch_6_model_loss_0.4579.pt',
+    parser.add_argument('--load-model', default='ckpt/epoch_6_model_loss_0.4579.pt',
                         type=str, help='.pt model file ')
-    parser.add_argument('--save-path', default='ckpt',
+    parser.add_argument('--save-path', default='ckpt/',
                         type=str, help='.pt model file save dir')
     
     args = parser.parse_args() if string is None else parser.parse_args(string)
@@ -49,8 +49,8 @@ if __name__=='__main__':
     valid_dataloader = DataLoader(valid_dataset,
                                  batch_size = args.batch_size*4,
                                  num_workers = args.num_workers,
-                                 collate_fn = train_dataset.collate_fn)
+                                 collate_fn = valid_dataset.collate_fn)
     
     ## train
     train(args, train_dataloader, valid_dataloader)
-
+    
