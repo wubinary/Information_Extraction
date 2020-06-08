@@ -3,9 +3,10 @@ import json
 import torch
 import torch.nn as nn
 
-from transformers import BertTokenizer,BertModel
+from transformers import BertTokenizer, BertJapaneseTokenizer, BertModel
 
 pretrained_weights = 'cl-tohoku/bert-base-japanese-whole-word-masking'
+#pretrained_weights = 'bert-base-japanese-whole-word-masking'
 
 class Model(nn.Module):
     def __init__(self):

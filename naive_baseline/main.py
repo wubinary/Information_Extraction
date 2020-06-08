@@ -1,5 +1,5 @@
 from dataset import Cinnamon_Dataset, DataLoader
-from train import BertTokenizer, Model, pretrained_weights, train
+from train import BertTokenizer, BertJapaneseTokenizer, Model, pretrained_weights, train
 
 import os, warnings, argparse
 warnings.filterwarnings('ignore')
@@ -35,7 +35,8 @@ if __name__=='__main__':
     os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
     
     ## load tokenizer
-    tokenizer = BertTokenizer.from_pretrained(pretrained_weights, do_lower_case=True)
+    #tokenizer = BertTokenizer.from_pretrained(pretrained_weights, do_lower_case=True)
+    tokenizer = BertJapaneseTokenizer.from_pretrained(pretrained_weights, do_lower_case=True)
 
     ## load dataset
     train_dataset = Cinnamon_Dataset(f'{args.cinnamon_data_path}/train/', tokenizer)
