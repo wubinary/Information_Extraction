@@ -72,6 +72,7 @@ def train(args, train_dataloader, valid_dataloader):
                                   lr=args.lr,
                                   eps=1e-8 )
 
+    best_f1 = 0
     for epoch in range(1,args.epoch+1):
         print(f' Epoch {epoch}')
             
@@ -87,11 +88,14 @@ def train(args, train_dataloader, valid_dataloader):
         model.save(epoch, train_log, valid_log, args.save_path)
       
         ## Update learning rate
-        if False and epoch>4:
+        if valid_log['f1']>best_f1: # 更新best f1
+            best_f1 = valid_log['f1']
+        '''
+        else: # 更改lr
             for param_group in optimizer.param_groups:
                 param_group['lr'] /= 2
                 if param_group['lr'] < 1e-6:
                     param_group['lr'] = 1e-6 
-
+        '''
         print('\t--------------------------------------------------------')
 

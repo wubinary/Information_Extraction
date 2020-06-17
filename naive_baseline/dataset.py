@@ -73,23 +73,49 @@ class Cinnamon_Dataset(Dataset):
         def zero_vec(): 
             return [0]*len(tags)
         
+        def sub_idx_finder(list1, list2):            
+            for i in range(len(list1)-len(list2)):
+                find = True
+                hit, miss = 0, 0
+                for j in range(len(list2)):
+                    if list1[i+j] != list2[j]: 
+                        find = False
+                        miss += 1
+                    else:
+                        hit += 1
+                if miss < len(list2)/5:
+                    find = True
+                if find:
+                    return i
+            #print('yeh')
+        
         ## text tokenized, label vectoized
         b_token_ids, b_output = [], []
         for sample in samples:
             token_ids = [CLS]
             output = [zero_vec()]
-            for text, tag in zip(sample['Text'],sample['Tag']):
+            for text, tag, value in zip(sample['Text'],sample['Tag'],sample['Value']):
                 # 全形半形問題
-                text = unicodedata.normalize("NFKC", re.sub('＊|\*|\s+', '', text))
+                text = str(unicodedata.normalize("NFKC", re.sub('＊|\*|\s+', '', text)))
+                tag = str(unicodedata.normalize("NFKC", re.sub('＊|\*|\s+', '', tag))) if tag is not np.nan else tag
+                value = str(unicodedata.normalize("NFKC", re.sub('＊|\*|\s+', '', value))) if value is not np.nan else value
+                    
                 ###
                 ids = tokenizer.encode(text)[1:-1] + [SEP]
-                label = zero_vec()
-                if isinstance(tag, str): 
-                    for t in tag.split(';'):
+                labels = [zero_vec()]*(len(ids)-1) + [zero_vec()]
+                
+                if isinstance(tag, str):
+                    for t,v in zip(tag.split(';'), str(value).split(';')):
                         t = unicodedata.normalize("NFKC", re.sub('＊|\*|\s+', '', t))
-                        label[tags.index(t)] = 1
+                        v = unicodedata.normalize("NFKC", re.sub('＊|\*|\s+', '', v))
+                        
+                        ids_v = tokenizer.encode(v)[1:-1]
+                        pivote = sub_idx_finder(ids, ids_v)
+                        for k in range(len(ids_v)):
+                            if pivote is not None:
+                                labels[pivote+k][tags.index(t)] = 1
                 token_ids += ids
-                output += [label]*(len(ids)-1) + [zero_vec()]
+                output += labels
             b_token_ids.append(token_ids)
             b_output.append(output)
 
