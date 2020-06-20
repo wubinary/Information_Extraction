@@ -66,7 +66,7 @@ def train(args, train_dataloader, valid_dataloader):
     model = Model()
     model.load(args.load_model).cuda() 
     
-    criterion = nn.BCEWithLogitsLoss().cuda()#pos_weight=[]).cuda()
+    criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([10]*20)).cuda()#pos_weight=[]).cuda()
      
     optimizer = torch.optim.AdamW(list(model.parameters()), 
                                   lr=args.lr,
@@ -85,10 +85,11 @@ def train(args, train_dataloader, valid_dataloader):
                             valid_log['loss'], valid_log['acc'], valid_log['f1']))
         
         ## Save ckpt
-        model.save(epoch, train_log, valid_log, args.save_path)
+        if epoch%10==0 or epoch==args.epoch:
+            model.save(epoch, train_log, valid_log, args.save_path)
       
         ## Update learning rate
-        if valid_log['f1']>best_f1: # 更新best f1
+        if valid_log['f1']>=best_f1: # 更新best f1
             best_f1 = valid_log['f1']
         '''
         else: # 更改lr
