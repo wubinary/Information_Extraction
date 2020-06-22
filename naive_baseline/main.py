@@ -17,8 +17,12 @@ def parse_args(string=None):
                         type=str, help="0:1080ti 1:1070")
     parser.add_argument('--num-workers', default=8,
                         type=int, help='dataloader num workers')
+    parser.add_argument('--model', default='naive',
+                        type=str, help='naive,blstm')
     parser.add_argument('--delta', default=11,
                         type=int, help='dataset delta cat together')
+    parser.add_argument('--decline-lr', action='store_true',
+                                  help='decline lr if valid not better')
     parser.add_argument('--cinnamon-data-path', default='/media/D/ADL2020-SPRING/project/cinnamon/',
                         type=str, help='cinnamon dataset')
     parser.add_argument('--load-model', default='ckpt/epoch_6_model_loss_0.4579.pt',

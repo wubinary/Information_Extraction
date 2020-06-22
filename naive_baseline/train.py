@@ -63,10 +63,13 @@ def train(args, train_dataloader, valid_dataloader):
     torch.manual_seed(987)
     torch.cuda.manual_seed(987)
     
-    model = Model()
+    if args.model == 'naive':
+        model = Model()
+    elif args.model == 'blstm':
+        model = Model_BLSTM() 
     model.load(args.load_model).cuda() 
     
-    criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([10]*20)).cuda()#pos_weight=[]).cuda()
+    criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([10]*20)).cuda() #pos_weight=[]).cuda()
      
     optimizer = torch.optim.AdamW(list(model.parameters()), 
                                   lr=args.lr,
@@ -89,14 +92,17 @@ def train(args, train_dataloader, valid_dataloader):
             model.save(epoch, train_log, valid_log, args.save_path)
       
         ## Update learning rate
+        warmup = 0 
         if valid_log['f1']>=best_f1: # 更新best f1
             best_f1 = valid_log['f1']
-        '''
-        else: # 更改lr
+        elif warmup<5:
+            warmup += 1
+        elif args.decline_lr: # 更改lr
+            warmup = 0
             for param_group in optimizer.param_groups:
                 param_group['lr'] /= 2
                 if param_group['lr'] < 1e-6:
                     param_group['lr'] = 1e-6 
-        '''
+        
         print('\t--------------------------------------------------------')
 

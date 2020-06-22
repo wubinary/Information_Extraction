@@ -16,8 +16,12 @@ def parse_args(string=None):
                         type=str, help="0:1080ti 1:1070")
     parser.add_argument('--num-workers', default=8,
                         type=int, help='dataloader num workers')
+    parser.add_argument('--model', default='naive',
+                        type=str, help='naive,blstm')
     parser.add_argument('--delta', default=11,
                         type=int, help='data delta cat together')
+    parser.add_argument('--postprocess', action='store_true',
+                                  help='do postprocessing ?')
     parser.add_argument('--cinnamon-data-path', default='/media/D/ADL2020-SPRING/project/cinnamon/',
                         type=str, help='cinnamon dataset')
     parser.add_argument('--dev_or_test', default='dev',
@@ -61,28 +65,31 @@ def post_process(value, tag, text):
     value_ret = ''
     for c in value:
         if c in text:
-            value_ret += c
+            c = c
         elif chr(ord(c)+65248) in text:
-            value_ret += chr(ord(c)+65248)
+            c = chr(ord(c)+65248)
         elif ord('a')<=ord(c) and ord(c)<=ord('z'): #小寫轉大寫
             if chr(ord(c)-32) in text: #小寫轉大寫 半形
-                value_ret += chr(ord(c)-32)
+                c = chr(ord(c)-32)
             elif chr(ord(c)+65248-32) in text: #小寫轉大寫 + 轉全形
-                value_ret += chr(ord(c)+65248-32)
+                c = chr(ord(c)+65248-32)
         elif ord('A')<=ord(c) and ord(c)<=ord('Z'): #大寫轉小寫
             if chr(ord(c)+32) in text: #大寫轉小寫 半形
-                value_ret += chr(ord(c)+65248+32)            
+                c = chr(ord(c)+65248+32)            
             elif chr(ord(c)+65248+32) in text: #大寫轉小寫 + 轉全形
-                value_ret += chr(ord(c)+65248+32)
+                c = chr(ord(c)+65248+32)
         else:
             pass
             #print(c, text, value)
-            
+        value_ret += c 
     return value_ret
     
 def inference(args, tokenizer, dataloader):
-    
-    model = Model()
+   
+    if args.model == 'naive':
+        model = Model()
+    elif args.model == 'blstm':
+        model = Model_BLSTM()
     model.load_state_dict(torch.load(args.load_model)['state_dict']) #.cuda().eval()
     model.eval()
     
@@ -107,9 +114,12 @@ def inference(args, tokenizer, dataloader):
                 if len(values)>0:
                     index = Counter(index).most_common()[0][0]
                     
-                    value_str = tokenizer.decode(values, skip_special_tokens=True).replace(" ","")            
-                    value_str = post_process(value_str, tag, sample.loc[sample['Index']==index, 'Text'].item())
-                    
+                    value_str = tokenizer.decode(values, skip_special_tokens=True).replace(" ","")
+                    if args.postprocess:
+                        value_str = post_process(value_str, tag, sample.loc[sample['Index']==index, 'Text'].item())
+                    else:
+                        value_str = value_str 
+
                     # add a tag&value to <Tag> <Value>
                     if sample[sample['Index']==index]['Tag'].item() == "":
                         sample.loc[sample['Index']==index, 'Tag'] = "{}".format(tag)
