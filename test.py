@@ -102,14 +102,15 @@ def inference(args, tokenizer, dataloader):
         model = Model_BLSTM()
     model.load_state_dict(torch.load(args.load_model)['state_dict']) #.cuda().eval()
     model.eval()
+    model.cuda()
     
     with torch.no_grad():
         total_dataframe = None 
         data = {'doc':[],'index':[],'ID':[],'Tag':[],'Value':[]}
         for iii,(doc, index, ids, _, masks, sample) in enumerate(dataloader):
             
-            output = model(ids)[0]
-            prob = F.sigmoid(output)
+            output = model(ids.cuda())[0]
+            prob = F.sigmoid(output).cpu()
             
             doc, index, ids, masks, sample = doc[0], index[0], ids[0], masks[0], sample[0]
             
@@ -128,7 +129,7 @@ def inference(args, tokenizer, dataloader):
 
                 if len(values)>0:                    
                     value_str = tokenizer.decode(values, skip_special_tokens=True).replace(" ","")
-                    if args.postprocess:
+                    if True or args.postprocess:
                         value_str = post_process(value_str, tag, sample['text'])
                     else:
                         value_str = value_str 
