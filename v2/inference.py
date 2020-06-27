@@ -1,4 +1,4 @@
-from dataset import tags, Cinnamon_Dataset_Testing, DataLoader
+from dataset import tags, Cinnamon_Dataset_Testing_v2, DataLoader
 from train import *
 from utils.convert import *
 from utils.score import * 
@@ -18,8 +18,6 @@ def parse_args(string=None):
                         type=int, help='dataloader num workers')
     parser.add_argument('--model', default='naive',
                         type=str, help='naive,blstm')
-    parser.add_argument('--delta', default=11,
-                        type=int, help='data delta cat together')
     parser.add_argument('--postprocess', action='store_true',
                                   help='do postprocessing ?')
     parser.add_argument('--cinnamon-data-path', default='/media/D/ADL2020-SPRING/project/cinnamon/',
@@ -28,7 +26,7 @@ def parse_args(string=None):
                         type=str, help='dev or test set')
     parser.add_argument('--load-model', default='./naive_baseline/ckpt/epoch_34.pt',
                         type=str, help='.pt model file ')
-    parser.add_argument('--save-result-path', default='./naive_baseline/result/',
+    parser.add_argument('--save-result-path', default='./v2/result/',
                         type=str, help='.pt model file save dir')
     parser.add_argument('--ref-file', default='/media/D/ADL2020-SPRING/project/cinnamon/dev/dev_ref.csv',
                         type=str, help='calcu score ref file')    
@@ -61,7 +59,7 @@ def post_process(value, tag, text):
                  '入札書送付先',
                  '入札書送付先部署/担当者名',]:
         return text.replace('イ．','').replace('ア．','').replace('．','').replace(' ','') 
- 
+    
 
     '''
         value = value.replace('##l:','ＴＥＬ：').replace('tel:','ＴＥＬ：').replace('Tel:','ＴＥＬ：').replace('TEL:','ＴＥＬ：')
@@ -106,49 +104,54 @@ def inference(args, tokenizer, dataloader):
     
     with torch.no_grad():
         total_dataframe = None 
-        for iii,(_input, _label, token_indexs, doc_id, sample) in enumerate(dataloader):
-            sample['Prediction'] = ""
-            sample['Tag'] = ""
-            sample['Value'] = ""
-
-            _output = model(_input)[0]
-            prob = F.sigmoid(_output)
+        data = {'doc':[],'index':[],'ID':[],'Tag':[],'Value':[]}
+        for iii,(doc, index, ids, _, masks, sample) in enumerate(dataloader):
+            
+            output = model(ids)[0]
+            prob = F.sigmoid(output)
+            
+            doc, index, ids, masks, sample = doc[0], index[0], ids[0], masks[0], sample[0]
+            
+            data['doc'].append(doc)
+            data['index'].append(index)
+            data['ID'].append(f"{doc}-{index}")
+            data['Tag'].append("")
+            data['Value'].append("")
+            
 
             for i,tag in enumerate(tags):
-                index = []
                 values = []
                 for j in range(prob.size(0)):
                     if prob[j,i] > 0.5:
-                        values.append(_input[0][j])
-                        index.append(token_indexs[0][j])
+                        values.append(ids[j])
 
-                if len(values)>0:
-                    index = Counter(index).most_common()[0][0]
-                    
+                if len(values)>0:                    
                     value_str = tokenizer.decode(values, skip_special_tokens=True).replace(" ","")
                     if args.postprocess:
-                        value_str = post_process(value_str, tag, sample.loc[sample['Index']==index, 'Text'].item())
+                        value_str = post_process(value_str, tag, sample['text'])
                     else:
                         value_str = value_str 
 
                     # add a tag&value to <Tag> <Value>
-                    if sample[sample['Index']==index]['Tag'].item() == "":
-                        sample.loc[sample['Index']==index, 'Tag'] = "{}".format(tag)
-                        sample.loc[sample['Index']==index, 'Value'] = "{}".format(value_str)
+                    if data['Tag'][-1] == "":
+                        data['Tag'][-1] = "{}".format(tag)
+                        data['Value'][-1] = "{}".format(value_str)
                     else:
-                        sample.loc[sample['Index']==index, 'Tag'] += ";{}".format(tag)
-                        sample.loc[sample['Index']==index, 'Value'] += ";{}".format(value_str)
+                        data['Tag'][-1] += ";{}".format(tag)
+                        data['Value'][-1] += ";{}".format(value_str)
 
-            total_dataframe = total_dataframe.append(sample) if isinstance(total_dataframe, pd.DataFrame) else sample
+            #total_dataframe = total_dataframe.append(sample) if isinstance(total_dataframe, pd.DataFrame) else sample
 
             print(f'\t[Info] [{iii+1}/{len(dataloader)}]', end='   \r')
+            
+        total_dataframe = pd.DataFrame(data)
             
         print('\t[Info] finish inference ')
             
         # sort dataframe & save results
-        total_dataframe = total_dataframe.sort_values(by=['id','Index'], ascending=[True,True])
-        total_dataframe = total_dataframe.drop('Page No', axis=1).drop('Parent Index', axis=1).drop('Is Title', axis=1).drop(
-                        'Is Table', axis=1).drop('id', axis=1).drop('Index', axis=1)
+        total_dataframe = total_dataframe.sort_values(by=['doc','index'], ascending=[True,True])
+        #total_dataframe = total_dataframe.drop('Page No', axis=1).drop('Parent Index', axis=1).drop('Is Title', axis=1).drop(
+        #                'Is Table', axis=1).drop('id', axis=1).drop('Index', axis=1)
         total_dataframe.to_csv(f'{args.save_result_path}/result.csv', encoding='utf8')
         
         # convert results to submission format
@@ -168,7 +171,7 @@ if __name__ == '__main__':
 
     tokenizer = BertJapaneseTokenizer.from_pretrained(pretrained_weights)#, do_lower_case=True)
 
-    dataset = Cinnamon_Dataset_Testing(f'/media/D/ADL2020-SPRING/project/cinnamon/{args.dev_or_test}/', tokenizer, args.delta)
+    dataset = Cinnamon_Dataset_Testing_v2(f'/media/D/ADL2020-SPRING/project/cinnamon/{args.dev_or_test}/', tokenizer, tags)
     dataloader = DataLoader(dataset,
                              batch_size=1,
                              collate_fn=dataset.collate_fn,
