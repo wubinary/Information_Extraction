@@ -1,6 +1,9 @@
 # Cinnamon Information Extraction
 ADL2020-SPRING Final project
 
+## Report 
+[[pdf]](https://github.com/wubinary/Information_Extraction/blob/master/Report.pdf)
+
 ## Train v2 preprocessing
 ```cmd=
 # train naive baseline
@@ -26,8 +29,4 @@ ADL2020-SPRING Final project
 > python3.6 test.py {past_to_test_set_dir}
 
 ```
-
-## Report 
-[pdf](https://github.com/wubinary/Information_Extraction/blob/master/Report.pdf)
-
 
