@@ -1,9 +1,7 @@
-# Information Extraction
-ADL project
-
-
-## Resources
-https://hackmd.io/@_bCZBfLiTfSu3VIgrt7ouw/HkfjugrhI/edit 
+# Cinnamon Information Extraction
+ADL2020-SPRING Final project
 
 ## Report 
+[pdf](https://github.com/wubinary/Information_Extraction/blob/master/Report.pdf)
+
 
