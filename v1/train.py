@@ -1,5 +1,9 @@
-from model import *
-from utils.metrics import metrics
+try:
+    from model import *
+    from utils.metrics import metrics
+except Exception as inst:
+    from v2.model import *
+    from v2.utils.metrics import metrics 
 
 import os
 import torch

@@ -1,4 +1,7 @@
-from utils.utils import get_tags, clean_str, sub_idx_finder
+try:
+    from utils.utils import get_tags, clean_str, sub_idx_finder
+except Exception as inst:
+    from v2.utils.utils import get_tags, clean_str, sub_idx_finder 
 
 import json, glob, torch
 import numpy as np
